@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ayenda Fitness — Order</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--black:#0a0a0a;--white:#f5f2ed;--green:#4a7c59;--green-light:#6aab7a;--gray:#2a2a2a;--text-muted:#888;--border:#222;--red:#c0392b;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:130px}
+  .header{background:var(--black);border-bottom:1px solid var(--border);padding:20px 20px 14px;position:sticky;top:0;z-index:100}
+  .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;letter-spacing:3px;text-transform:uppercase}
+  .logo span{display:block;font-size:10px;letter-spacing:4px;font-weight:300;color:var(--green-light);font-family:'DM Sans',sans-serif;margin-top:2px}
+  .table-badge{background:var(--green);color:white;font-size:12px;font-weight:600;letter-spacing:1px;padding:6px 14px;border-radius:20px}
+  .name-input{background:var(--gray);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;outline:none;width:100%}
+  .name-input::placeholder{color:var(--text-muted)}
+  .name-input:focus{border-color:var(--green)}
+  .seasoning-bar{display:flex;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+  .seasoning-bar::-webkit-scrollbar{display:none}
+  .season-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;padding:6px 14px;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+  .season-btn.active{background:var(--green);border-color:var(--green);color:white}
+  .notes-row{padding:8px 20px;border-bottom:1px solid var(--border)}
+  .notes-input{background:var(--gray);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;padding:8px 12px;outline:none;width:100%;resize:none}
+  .notes-input::placeholder{color:var(--text-muted)}
+
+  /* MAIN CATEGORY TABS (Food / Drinks) */
+  .main-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--black);position:sticky;top:132px;z-index:100}
+  .main-tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;padding:13px;text-transform:uppercase;transition:all 0.2s}
+  .main-tab.active{color:var(--white);border-bottom-color:var(--green)}
+
+  /* SUB TABS */
+  .tabs{display:flex;gap:0;padding:0 20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--black);position:sticky;top:178px;z-index:99}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;padding:11px 13px;text-transform:uppercase;white-space:nowrap;transition:all 0.2s}
+  .tab.active{color:var(--white);border-bottom-color:var(--green)}
+
+  .cat-panel{display:none}
+  .cat-panel.active{display:block}
+  .menu-section{display:none;padding:0 20px}
+  .menu-section.active{display:block}
+  .section-title{font-family:'Playfair Display',serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green-light);padding:16px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+
+  .menu-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);transition:opacity 0.3s}
+  .menu-item.sold-out{opacity:0.4}
+  .item-qty{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .qty-btn{background:var(--gray);border:1px solid var(--border);border-radius:50%;color:var(--white);cursor:pointer;font-size:16px;height:28px;width:28px;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+  .qty-btn:active{background:var(--green);border-color:var(--green);transform:scale(0.9)}
+  .qty-btn:disabled{opacity:0.25;cursor:not-allowed}
+  .qty-display{font-size:14px;font-weight:500;min-width:16px;text-align:center}
+  .qty-display.has-qty{color:var(--green-light);font-weight:700}
+  .item-info{flex:1}
+  .item-name{font-size:13px;font-weight:400;color:var(--white);margin-bottom:2px}
+  .item-sub-label{font-size:10px;color:var(--text-muted)}
+  .sold-out-badge{background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:4px;color:var(--red);font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;text-transform:uppercase;margin-top:3px;display:inline-block}
+  .item-price{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;flex-shrink:0;min-width:36px;text-align:right}
+  .sub-options{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 4px 48px}
+  .sub-btn{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;font-size:10px;letter-spacing:0.5px;padding:4px 10px;transition:all 0.15s}
+  .sub-btn.active{background:var(--green);border-color:var(--green);color:white}
+
+  /* TEMP options for drinks (Hot/Ice) */
+  .temp-options{display:flex;gap:6px;padding:6px 0 4px 48px}
+  .temp-btn{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;font-size:10px;letter-spacing:0.5px;padding:4px 12px;transition:all 0.15s}
+  .temp-btn.active{background:var(--green);border-color:var(--green);color:white}
+
+  .bottom-actions{position:fixed;bottom:0;left:0;right:0;z-index:200;padding:10px 16px 22px;background:linear-gradient(transparent,var(--black) 25%)}
+  .action-row{display:flex;gap:10px;margin-bottom:8px}
+  .waiter-btn,.bill-btn{flex:1;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:13px 8px;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s}
+  .waiter-btn{background:var(--gray);border:1px solid var(--border);color:var(--white)}
+  .waiter-btn:active{background:#3a3a3a;transform:scale(0.97)}
+  .bill-btn{background:rgba(74,124,89,0.18);border:1px solid rgba(74,124,89,0.5);color:var(--green-light)}
+  .bill-btn:active{background:rgba(74,124,89,0.35);transform:scale(0.97)}
+  .cart-btn{background:var(--green);border:none;border-radius:14px;color:white;cursor:pointer;display:none;align-items:center;justify-content:space-between;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:15px 20px;width:100%;box-shadow:0 8px 30px rgba(74,124,89,0.4);transition:all 0.2s}
+  .cart-btn.visible{display:flex}
+  .cart-btn:active{transform:scale(0.98)}
+  .cart-count{background:white;color:var(--green);border-radius:50%;font-size:12px;font-weight:700;height:24px;line-height:24px;min-width:24px;text-align:center}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:none;align-items:flex-end}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--gray);border-radius:20px 20px 0 0;max-height:90vh;overflow-y:auto;padding:24px 20px 40px;width:100%;animation:slideUp 0.3s ease}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-handle{background:var(--border);border-radius:3px;height:4px;margin:0 auto 20px;width:40px}
+  .modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:20px}
+  .order-item-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
+  .order-item-name{font-size:13px;color:var(--white);flex:1}
+  .order-item-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .order-item-qty{font-size:12px;color:var(--green-light);font-weight:600;flex-shrink:0}
+  .order-item-price{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;flex-shrink:0}
+  .order-info-row{background:#1a1a1a;border-radius:10px;padding:12px 16px;margin:16px 0;font-size:12px;color:var(--text-muted);line-height:1.8}
+  .order-info-row strong{color:var(--white)}
+  .place-order-btn{background:var(--green);border:none;border-radius:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;padding:16px;text-transform:uppercase;width:100%;margin-top:16px;transition:all 0.2s}
+  .place-order-btn:disabled{opacity:0.5;cursor:not-allowed}
+  .close-modal-btn{background:none;border:1px solid var(--border);border-radius:12px;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;padding:14px;width:100%;margin-top:10px}
+
+  .success-screen{display:none;position:fixed;inset:0;background:var(--black);z-index:400;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+  .success-screen.show{display:flex}
+  .success-icon{font-size:64px;margin-bottom:20px}
+  .success-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;margin-bottom:12px}
+  .success-sub{font-size:14px;color:var(--text-muted);margin-bottom:30px;line-height:1.8}
+  .new-order-btn{background:var(--green);border:none;border-radius:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:14px 32px}
+
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:12px 24px;border-radius:30px;font-size:13px;font-weight:600;z-index:500;display:none;white-space:nowrap}
+  .toast.show{display:block;animation:fadeInOut 2.8s ease forwards}
+  @keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}75%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Ayenda<span>Fitness Café</span></div>
+    <div class="table-badge" id="tableBadge">Table —</div>
+  </div>
+  <input class="name-input" id="customerName" placeholder="Your name" type="text">
+</div>
+
+<div class="seasoning-bar">
+  <button class="season-btn" id="sn-no">No Seasoning</button>
+  <button class="season-btn" id="sn-coconut">Coconut Oil</button>
+  <button class="season-btn" id="sn-olive">Olive Oil</button>
+</div>
+<div class="notes-row">
+  <textarea class="notes-input" id="orderNotes" placeholder="Special notes / allergies..." rows="1"></textarea>
+</div>
+
+<!-- MAIN TABS: Food / Drinks -->
+<div class="main-tabs">
+  <button class="main-tab active" id="main-food">🍽 Food</button>
+  <button class="main-tab" id="main-drinks">☕ Drinks</button>
+</div>
+
+<!-- FOOD SUB-TABS -->
+<div class="tabs" id="food-tabs">
+  <button class="tab active" id="tab-proteins">Proteins</button>
+  <button class="tab" id="tab-carbs">Carbs</button>
+  <button class="tab" id="tab-fats">Fats</button>
+  <button class="tab" id="tab-veg">Veg</button>
+  <button class="tab" id="tab-fruit">Fruit</button>
+  <button class="tab" id="tab-probiotic">Pre/Pro</button>
+  <button class="tab" id="tab-sauces">Sauces</button>
+</div>
+
+<!-- DRINKS SUB-TABS -->
+<div class="tabs" id="drinks-tabs" style="display:none">
+  <button class="tab active" id="tab-coffee">Coffee</button>
+  <button class="tab" id="tab-tea">Tea</button>
+  <button class="tab" id="tab-juice">Juice</button>
+  <button class="tab" id="tab-cold">Cold</button>
+  <button class="tab" id="tab-shakes">Shakes</button>
+</div>
+
+<!-- FOOD SECTIONS -->
+<div class="cat-panel active" id="panel-food">
+  <div class="menu-section active" id="sec-proteins"><div class="section-title">Proteins</div><div id="proteins-list"></div></div>
+  <div class="menu-section" id="sec-carbs"><div class="section-title">Carbs</div><div id="carbs-list"></div></div>
+  <div class="menu-section" id="sec-fats"><div class="section-title">Fats</div><div id="fats-list"></div></div>
+  <div class="menu-section" id="sec-veg"><div class="section-title">Vegetables</div><div id="veg-list"></div></div>
+  <div class="menu-section" id="sec-fruit"><div class="section-title">Fruit</div><div id="fruit-list"></div></div>
+  <div class="menu-section" id="sec-probiotic"><div class="section-title">Pre / Probiotic</div><div id="probiotic-list"></div></div>
+  <div class="menu-section" id="sec-sauces"><div class="section-title">Sauces</div><div id="sauces-list"></div></div>
+</div>
+
+<!-- DRINKS SECTIONS -->
+<div class="cat-panel" id="panel-drinks">
+  <div class="menu-section active" id="sec-coffee"><div class="section-title">Coffee</div><div id="coffee-list"></div></div>
+  <div class="menu-section" id="sec-tea"><div class="section-title">Tea</div><div id="tea-list"></div></div>
+  <div class="menu-section" id="sec-juice"><div class="section-title">Juice</div><div id="juice-list"></div></div>
+  <div class="menu-section" id="sec-cold"><div class="section-title">Cold Beverages</div><div id="cold-list"></div></div>
+  <div class="menu-section" id="sec-shakes"><div class="section-title">Protein Shakes</div><div id="shakes-list"></div></div>
+</div>
+
+<div class="bottom-actions">
+  <div class="action-row">
+    <button class="waiter-btn" id="btnWaiter">🔔 Call Waiter</button>
+    <button class="bill-btn" id="btnBill">💳 Pay Bill</button>
+  </div>
+  <button class="cart-btn" id="cartBtn">
+    <span>View Order</span>
+    <span class="cart-count" id="cartCount">0</span>
+    <span style="font-size:12px;opacity:0.7">items</span>
+  </button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Your Order</div>
+    <div id="modalItems"></div>
+    <div class="order-info-row" id="orderInfoRow"></div>
+    <button class="place-order-btn" id="placeBtn">Send to Kitchen</button>
+    <button class="close-modal-btn" id="closeModalBtn">Continue Adding</button>
+  </div>
+</div>
+
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✓</div>
+  <div class="success-title">Order Sent!</div>
+  <div class="success-sub" id="successMsg"></div>
+  <button class="new-order-btn" id="newOrderBtn">New Order</button>
+</div>
+
+<script>
+const tableNumber = new URLSearchParams(window.location.search).get('table') || '?';
+document.getElementById('tableBadge').textContent = 'Table ' + tableNumber;
+
+let outOfStock = {}, menuBuilt = false;
+
+const menu = {
+  proteins:[
+    {id:'p1',name:'Grilled Beef Patties',weight:'160g',kcal:410,protein:55,carbs:2,price:45},
+    {id:'p2',name:'Marinated Chicken Breast',weight:'250g',kcal:310,protein:30,carbs:14,price:48},
+    {id:'p3',name:'Grilled Salmon Fillet',weight:'200g',kcal:412,protein:44,carbs:0,price:125},
+    {id:'p4',name:'Spiced Tempeh',weight:'160g',kcal:310,protein:30,carbs:14,price:40},
+    {id:'p5',name:'Spiced Tofu',weight:'160g',kcal:190,protein:20,carbs:4,price:40},
+    {id:'p6',name:'Free Range Eggs',weight:'3pc',kcal:210,protein:18,carbs:1,price:25,subs:['Scrambled','Poached','Fried','Boiled','Omelette']},
+    {id:'p7',name:'Grass Fed Rib Eye Steak',weight:'200g',kcal:500,protein:50,carbs:0,price:200,subs:['Rare','Med. Rare','Medium','Med. Well','Well Done']},
+  ],
+  carbs:[
+    {id:'c1',name:'White Rice',weight:'200g',kcal:220,protein:5,carbs:45,price:25},
+    {id:'c2',name:'Brown Rice',weight:'200g',kcal:220,protein:5,carbs:45,price:25},
+    {id:'c3',name:'Roasted Potatoes',weight:'200g',kcal:300,protein:6,carbs:50,price:25},
+    {id:'c4',name:'Baked Sweet Potatoes',weight:'200g',kcal:180,protein:4,carbs:41,price:25},
+    {id:'c5',name:'Mashed Potato',weight:'200g',kcal:210,protein:4,carbs:35,price:30},
+    {id:'c6',name:'Toasted Sourdough Bread',weight:'1pc',kcal:120,protein:4,carbs:22,price:15},
+    {id:'c7',name:'Raw Honey',weight:'15ml',kcal:45,protein:0,carbs:12,price:15},
+  ],
+  fats:[
+    {id:'f1',name:'Avocado',weight:'100g',kcal:160,protein:2,carbs:9,price:28},
+    {id:'f2',name:'Butter',weight:'15g',kcal:45,protein:0,carbs:12,price:35},
+    {id:'f3',name:'Feta Cheese',weight:'35g',kcal:95,protein:5,carbs:1,price:30},
+    {id:'f4',name:'Cottage Cheese',weight:'50g',kcal:55,protein:7,carbs:2,price:28},
+    {id:'f5',name:'Grass Fed Butter',weight:'15g',kcal:110,protein:0,carbs:0,price:35},
+  ],
+  veg:[
+    {id:'v1',name:'Mixed Salad',weight:'100g',kcal:25,protein:2,carbs:5,price:25},
+    {id:'v2',name:'Sauted Mushroom',weight:'200g',kcal:120,protein:8,carbs:10,price:25},
+    {id:'v3',name:'Sauted Spinach',weight:'100g',kcal:60,protein:5,carbs:4,price:25},
+    {id:'v4',name:'Roasted Broccoli',weight:'100g',kcal:45,protein:1,carbs:10,price:28},
+    {id:'v5',name:'Roasted Beetroot',weight:'100g',kcal:45,protein:2,carbs:10,price:25},
+    {id:'v6',name:'Grilled Zucchini',weight:'100g',kcal:20,protein:1,carbs:4,price:25},
+    {id:'v7',name:'Grilled Cherry Tomato',weight:'100g',kcal:35,protein:1,carbs:8,price:28},
+  ],
+  fruit:[
+    {id:'fr1',name:'Watermelon',weight:'200g',kcal:60,protein:1,carbs:15,price:25},
+    {id:'fr2',name:'Pineapple',weight:'150g',kcal:75,protein:1,carbs:20,price:25},
+    {id:'fr3',name:'Strawberry',weight:'100g',kcal:95,protein:1,carbs:25,price:25},
+    {id:'fr4',name:'Papaya',weight:'100g',kcal:43,protein:1,carbs:11,price:25},
+    {id:'fr5',name:'Banana',weight:'200g',kcal:105,protein:1,carbs:27,price:25},
+    {id:'fr6',name:'Dragon Fruit',weight:'100g',kcal:60,protein:1,carbs:13,price:25},
+  ],
+  probiotic:[
+    {id:'pb1',name:'Sauerkraut',weight:'50g',kcal:10,protein:1,carbs:8,price:18},
+    {id:'pb2',name:'Kimchi',weight:'80g',kcal:20,protein:2,carbs:4,price:22},
+    {id:'pb3',name:'Pickled Cucumber Onion',weight:'60g',kcal:15,protein:1,carbs:3,price:15},
+  ],
+  sauces:[
+    {id:'s1',name:'Guacamole',price:7},{id:'s2',name:'BBQ',price:7},{id:'s3',name:'Hommus',price:7},
+    {id:'s4',name:'Sweet Chilli',price:7},{id:'s5',name:'Honey Mustard',price:7},
+    {id:'s6',name:'Soy Ginger',price:7},{id:'s7',name:'Sriracha',price:7},
+    {id:'s8',name:'Aioli',price:7},{id:'s9',name:'Sambal',price:7},{id:'s10',name:'Sour Cream',price:7},
+  ],
+  coffee:[
+    {id:'d-c1',name:'Americano',priceHot:35,priceIce:45,hasTemp:true},
+    {id:'d-c2',name:'Espresso',price:25},
+    {id:'d-c3',name:'Double Espresso',price:30},
+    {id:'d-c4',name:'Espresso Orange',price:40},
+    {id:'d-c5',name:'Long Black',priceHot:35,priceIce:40,hasTemp:true},
+    {id:'d-c6',name:'Cappuccino',priceHot:35,priceIce:45,hasTemp:true},
+    {id:'d-c7',name:'Latte',priceHot:40,priceIce:50,hasTemp:true},
+    {id:'d-c8',name:'Flat White',priceHot:40,priceIce:50,hasTemp:true},
+  ],
+  tea:[
+    {id:'d-t1',name:'Green Tea',priceHot:50,priceIce:50,hasTemp:true},
+    {id:'d-t2',name:'Flower Tea',priceHot:50,priceIce:50,hasTemp:true},
+    {id:'d-t3',name:'Earl Grey Tea',priceHot:50,priceIce:50,hasTemp:true},
+    {id:'d-t4',name:'Ginger Tea',priceHot:50,priceIce:50,hasTemp:true},
+    {id:'d-t5',name:'Lemon Grass',priceHot:50,priceIce:50,hasTemp:true},
+    {id:'d-t6',name:'Matcha Latte',priceHot:60,priceIce:60,hasTemp:true},
+    {id:'d-t7',name:'Matcha Orange',price:60},
+  ],
+  juice:[
+    {id:'d-j1',name:'Watermelon Juice',price:30},{id:'d-j2',name:'Mango Juice',price:35},
+    {id:'d-j3',name:'Avocado Juice',price:35},{id:'d-j4',name:'Banana Juice',price:35},
+    {id:'d-j5',name:'Pineapple Juice',price:35},{id:'d-j6',name:'Mixed Fruit Juice',price:50},
+    {id:'d-j7',name:'Dragon Fruit Juice',price:30},
+  ],
+  cold:[
+    {id:'d-b1',name:'Coke',price:45},{id:'d-b2',name:'Coke Zero',price:45},
+    {id:'d-b3',name:'Sprite Zero',price:45},{id:'d-b4',name:'Pocari',price:45},
+    {id:'d-b5',name:'Aqua',price:25},{id:'d-b6',name:'Sparkling Water',price:55},
+  ],
+  shakes:[
+    {id:'d-s1',name:'Choco Shake',price:75},{id:'d-s2',name:'Yellow Vit',price:70},
+    {id:'d-s3',name:'Red Dragon',price:65},
+    {id:'d-add1',name:'+ Soy Milk',price:15,isAddon:true},
+    {id:'d-add2',name:'+ Almond Milk',price:15,isAddon:true},
+    {id:'d-add3',name:'+ 1 Scoop Protein',price:25,isAddon:true},
+  ],
+};
+
+const drinkCats=['coffee','tea','juice','cold','shakes'];
+const foodCats=['proteins','carbs','fats','veg','fruit','probiotic','sauces'];
+const cart={}, subSelections={}, tempSelections={}, seasonings=new Set();
+
+// MAIN TABS
+document.getElementById('main-food').addEventListener('click',function(){
+  this.classList.add('active'); document.getElementById('main-drinks').classList.remove('active');
+  document.getElementById('panel-food').classList.add('active'); document.getElementById('panel-drinks').classList.remove('active');
+  document.getElementById('food-tabs').style.display='flex'; document.getElementById('drinks-tabs').style.display='none';
+});
+document.getElementById('main-drinks').addEventListener('click',function(){
+  this.classList.add('active'); document.getElementById('main-food').classList.remove('active');
+  document.getElementById('panel-drinks').classList.add('active'); document.getElementById('panel-food').classList.remove('active');
+  document.getElementById('food-tabs').style.display='none'; document.getElementById('drinks-tabs').style.display='flex';
+});
+
+// SUB TABS
+foodCats.forEach(cat=>{
+  document.getElementById('tab-'+cat).addEventListener('click',function(){
+    document.querySelectorAll('#food-tabs .tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('#panel-food .menu-section').forEach(s=>s.classList.remove('active'));
+    this.classList.add('active'); document.getElementById('sec-'+cat).classList.add('active');
+    this.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  });
+});
+drinkCats.forEach(cat=>{
+  document.getElementById('tab-'+cat).addEventListener('click',function(){
+    document.querySelectorAll('#drinks-tabs .tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('#panel-drinks .menu-section').forEach(s=>s.classList.remove('active'));
+    this.classList.add('active'); document.getElementById('sec-'+cat).classList.add('active');
+    this.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  });
+});
+
+// SEASONING
+document.getElementById('sn-no').addEventListener('click',function(){this.classList.toggle('active');seasonings.has('no-seasoning')?seasonings.delete('no-seasoning'):seasonings.add('no-seasoning');});
+document.getElementById('sn-coconut').addEventListener('click',function(){this.classList.toggle('active');seasonings.has('coconut-oil')?seasonings.delete('coconut-oil'):seasonings.add('coconut-oil');});
+document.getElementById('sn-olive').addEventListener('click',function(){this.classList.toggle('active');seasonings.has('olive-oil')?seasonings.delete('olive-oil'):seasonings.add('olive-oil');});
+
+function getItemPrice(item,temp){
+  if(item.hasTemp){ var t=temp||tempSelections[item.id]||'hot'; return t==='hot'?(item.priceHot||item.priceIce):(item.priceIce||item.priceHot); }
+  return item.price||item.priceHot||item.priceIce;
+}
+
+function findItem(id){ for(var cat of Object.values(menu)){var f=cat.find(function(i){return i.id===id;});if(f)return f;} }
+
+function buildMenu(){
+  foodCats.forEach(function(cat){
+    var list=document.getElementById(cat+'-list');
+    menu[cat].forEach(function(item){
+      var div=document.createElement('div');
+      var macros=item.kcal!==undefined?(item.kcal+' kcal · '+item.protein+'g prot · '+item.carbs+'g carbs'):'';
+      var wt=item.weight?' <span style="color:#888;font-size:11px">'+item.weight+'</span>':'';
+      var subHtml=item.subs?'<div class="sub-options" id="sub-'+item.id+'">'+item.subs.map(function(o){return '<button class="sub-btn" data-item="'+item.id+'" data-opt="'+o+'">'+o+'</button>';}).join('')+'</div>':'';
+      div.innerHTML='<div class="menu-item" id="mr-'+item.id+'"><div class="item-qty"><button class="qty-btn" data-id="'+item.id+'" data-d="-1">−</button><span class="qty-display" id="qty-'+item.id+'">0</span><button class="qty-btn" data-id="'+item.id+'" data-d="1">+</button></div><div class="item-info"><div class="item-name">'+item.name+wt+'</div>'+(macros?'<div class="item-sub-label">'+macros+'</div>':'')+'<div id="oosb-'+item.id+'" style="display:none"><span class="sold-out-badge">Sold Out</span></div></div><div class="item-price" id="price-'+item.id+'">'+item.price+'k</div></div>'+subHtml;
+      list.appendChild(div);
+    });
+  });
+  drinkCats.forEach(function(cat){
+    var list=document.getElementById(cat+'-list');
+    menu[cat].forEach(function(item){
+      var div=document.createElement('div');
+      var basePrice=getItemPrice(item,'hot');
+      var tempHtml='';
+      if(item.hasTemp){
+        tempHtml='<div class="temp-options" id="temp-'+item.id+'"><button class="temp-btn active" data-item="'+item.id+'" data-temp="hot">Hot '+item.priceHot+'k</button><button class="temp-btn" data-item="'+item.id+'" data-temp="ice">Ice '+item.priceIce+'k</button></div>';
+        tempSelections[item.id]='hot';
+      }
+      var label=item.isAddon?'<span style="color:#6aab7a;font-size:10px">ADD-ON</span> ':'';
+      div.innerHTML='<div class="menu-item" id="mr-'+item.id+'"><div class="item-qty"><button class="qty-btn" data-id="'+item.id+'" data-d="-1">−</button><span class="qty-display" id="qty-'+item.id+'">0</span><button class="qty-btn" data-id="'+item.id+'" data-d="1">+</button></div><div class="item-info"><div class="item-name">'+label+item.name+'</div><div id="oosb-'+item.id+'" style="display:none"><span class="sold-out-badge">Sold Out</span></div></div><div class="item-price" id="price-'+item.id+'">'+basePrice+'k</div></div>'+tempHtml;
+      list.appendChild(div);
+    });
+  });
+
+  // QTY buttons
+  document.querySelectorAll('.qty-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=btn.dataset.id, delta=parseInt(btn.dataset.d);
+      var nv=Math.max(0,(cart[id]||0)+delta);
+      if(nv===0){delete cart[id];}else{cart[id]=nv;}
+      var el=document.getElementById('qty-'+id);
+      el.textContent=nv; el.className='qty-display'+(nv>0?' has-qty':'');
+      updateCartBar();
+    });
+  });
+
+  // Sub options
+  document.querySelectorAll('.sub-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#sub-'+btn.dataset.item+' .sub-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active'); subSelections[btn.dataset.item]=btn.dataset.opt;
+    });
+  });
+
+  // Temp options
+  document.querySelectorAll('.temp-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var itemId=btn.dataset.item, temp=btn.dataset.temp;
+      document.querySelectorAll('#temp-'+itemId+' .temp-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active'); tempSelections[itemId]=temp;
+      var item=findItem(itemId);
+      var newPrice=temp==='hot'?(item.priceHot||item.priceIce):(item.priceIce||item.priceHot);
+      document.getElementById('price-'+itemId).textContent=newPrice+'k';
+    });
+  });
+
+  menuBuilt=true;
+}
+
+function refreshStockUI(){
+  Object.values(menu).forEach(function(cat){cat.forEach(function(item){
+    var isOos=!!outOfStock[item.id];
+    var row=document.getElementById('mr-'+item.id);
+    var badge=document.getElementById('oosb-'+item.id);
+    if(row) row.classList.toggle('sold-out',isOos);
+    if(badge) badge.style.display=isOos?'block':'none';
+    document.querySelectorAll('.qty-btn[data-id="'+item.id+'"][data-d="1"]').forEach(function(b){b.disabled=isOos;});
+    if(isOos&&cart[item.id]){delete cart[item.id];var el=document.getElementById('qty-'+item.id);if(el){el.textContent='0';el.className='qty-display';}updateCartBar();}
+  });});
+}
+
+function updateCartBar(){
+  var count=Object.values(cart).reduce(function(s,v){return s+v;},0);
+  var btn=document.getElementById('cartBtn');
+  if(count>0){btn.classList.add('visible');}else{btn.classList.remove('visible');}
+  document.getElementById('cartCount').textContent=count;
+}
+
+function openModal(){
+  var d=document.getElementById('modalItems'); d.innerHTML='';
+  Object.keys(cart).forEach(function(id){
+    var item=findItem(id); var qty=cart[id];
+    var temp=tempSelections[id];
+    var price=getItemPrice(item,temp);
+    var lt=price*qty;
+    var sub=subSelections[id]?'<div class="order-item-sub">'+subSelections[id]+'</div>':'';
+    var tempLabel=temp?'<div class="order-item-sub">'+(temp==='hot'?'Hot':'Ice')+'</div>':'';
+    d.innerHTML+='<div class="order-item-row"><div><div class="order-item-name">'+item.name+(item.weight?' · '+item.weight:'')+'</div>'+sub+tempLabel+'</div><div class="order-item-qty">x'+qty+'</div><div class="order-item-price">'+lt+'k</div></div>';
+  });
+  var name=document.getElementById('customerName').value||'—';
+  var seas=Array.from(seasonings).map(function(s){return s.replace(/-/g,' ');}).join(', ')||'standard';
+  var notes=document.getElementById('orderNotes').value;
+  document.getElementById('orderInfoRow').innerHTML='<strong>Name:</strong> '+name+' &nbsp;·&nbsp; <strong>Table:</strong> '+tableNumber+'<br><strong>Seasoning:</strong> '+seas+(notes?'<br><strong>Notes:</strong> '+notes:'');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function placeOrder(){
+  var name=document.getElementById('customerName').value;
+  if(!name){alert('Please enter your name first.');return;}
+  // Show success — Firebase will be added later
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('successScreen').classList.add('show');
+  document.getElementById('successMsg').innerHTML='Order noted for <strong>'+name+'</strong> · Table <strong>'+tableNumber+'</strong><br>Show this screen to a staff member to confirm.<br><br>Payment at the cashier.';
+}
+
+function resetOrder(){
+  Object.keys(cart).forEach(function(id){delete cart[id];var el=document.getElementById('qty-'+id);if(el){el.textContent='0';el.className='qty-display';}});
+  Object.keys(subSelections).forEach(function(k){delete subSelections[k];});
+  document.querySelectorAll('.sub-btn.active,.season-btn.active').forEach(function(b){b.classList.remove('active');});
+  seasonings.clear();
+  document.getElementById('customerName').value='';
+  document.getElementById('orderNotes').value='';
+  document.getElementById('successScreen').classList.remove('show');
+  updateCartBar();
+}
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(function(){t.className='toast';},3000);}
+
+document.getElementById('cartBtn').addEventListener('click',openModal);
+document.getElementById('closeModalBtn').addEventListener('click',function(){document.getElementById('modalOverlay').classList.remove('open');});
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===document.getElementById('modalOverlay'))document.getElementById('modalOverlay').classList.remove('open');});
+document.getElementById('placeBtn').addEventListener('click',placeOrder);
+document.getElementById('newOrderBtn').addEventListener('click',resetOrder);
+document.getElementById('btnWaiter').addEventListener('click',function(){showToast('Waiter has been called!');});
+document.getElementById('btnBill').addEventListener('click',function(){showToast('Bill is being prepared!');});
+
+buildMenu();
+</script>
+</body>
+</html>

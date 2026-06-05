@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayenda — Bill</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--black:#0a0a0a;--white:#f5f2ed;--green:#4a7c59;--green-light:#6aab7a;--gray:#1a1a1a;--border:#222;--text-muted:#666;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;padding:20px;min-height:100vh}
+
+  .screen{max-width:480px;margin:0 auto}
+  .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .page-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+  .print-btn{background:var(--green);border:none;border-radius:10px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:10px 20px}
+  .print-btn:active{opacity:0.8}
+
+  /* SEARCH */
+  .search-row{display:flex;gap:10px;margin-bottom:20px}
+  .search-input{background:var(--gray);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;flex:1}
+  .search-input::placeholder{color:var(--text-muted)}
+  .search-input:focus{border-color:var(--green)}
+  .search-btn{background:var(--green);border:none;border-radius:8px;color:white;cursor:pointer;font-size:13px;font-weight:600;padding:10px 16px;font-family:'DM Sans',sans-serif}
+
+  /* ORDER CARDS */
+  .order-card{background:var(--gray);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);transition:border-color 0.2s}
+  .order-card:hover{border-color:var(--green)}
+  .order-card.selected{border-color:var(--green);background:#1f2f23}
+  .oc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .oc-table{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+  .oc-status{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px}
+  .oc-status.new{background:rgba(232,168,56,0.15);color:#e8a838}
+  .oc-status.preparing{background:rgba(74,124,89,0.15);color:var(--green-light)}
+  .oc-status.done{background:rgba(100,100,100,0.1);color:#666}
+  .oc-meta{font-size:12px;color:var(--text-muted)}
+
+  /* BILL PREVIEW */
+  .bill-preview{display:none}
+  .bill-preview.show{display:block}
+
+  /* PRINT STYLES */
+  @media print {
+    body{background:white;color:black;padding:0}
+    .screen{max-width:100%}
+    .top-bar,.search-row,.orders-list,.no-print{display:none!important}
+    .bill-preview{display:block!important}
+    .bill-box{box-shadow:none;border:none}
+  }
+
+  .bill-box{background:white;color:#111;border-radius:12px;padding:28px 24px;margin-top:16px;font-family:'DM Sans',sans-serif}
+  .bill-header{text-align:center;margin-bottom:20px;border-bottom:2px solid #111;padding-bottom:16px}
+  .bill-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:#111}
+  .bill-tagline{font-size:10px;letter-spacing:3px;color:#666;margin-top:3px}
+  .bill-meta{font-size:11px;color:#555;margin-top:10px;line-height:1.8}
+  .bill-items{margin:16px 0}
+  .bill-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #eee;gap:8px;font-size:13px;color:#111}
+  .bill-row:last-child{border-bottom:none}
+  .bill-item-name{flex:1}
+  .bill-item-sub{font-size:10px;color:#888;margin-top:1px}
+  .bill-item-qty{color:#555;flex-shrink:0;font-size:12px}
+  .bill-item-price{font-weight:600;flex-shrink:0;min-width:50px;text-align:right}
+  .bill-totals{border-top:1px solid #ccc;margin-top:8px;padding-top:12px}
+  .bill-total-row{display:flex;justify-content:space-between;font-size:13px;color:#333;padding:4px 0}
+  .bill-total-row.subtotal{color:#777}
+  .bill-total-row.grand{border-top:2px solid #111;margin-top:8px;padding-top:10px;font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#111}
+  .bill-footer{text-align:center;margin-top:20px;padding-top:14px;border-top:1px solid #eee;font-size:11px;color:#888;line-height:1.8}
+  .bill-footer strong{color:#111}
+  .no-orders{text-align:center;padding:40px;color:var(--text-muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="top-bar">
+    <div class="page-title">Print Bill</div>
+    <button class="print-btn no-print" id="printBtn" style="display:none" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="search-row no-print">
+    <input class="search-input" id="searchInput" placeholder="Search by table or name..." type="text">
+    <button class="search-btn" id="searchBtn">Search</button>
+  </div>
+
+  <div id="ordersList" class="orders-list no-print">
+    <div class="no-orders">Enter Firebase config to load orders</div>
+  </div>
+
+  <div class="bill-preview" id="billPreview">
+    <div class="bill-box" id="billBox"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCteDaRz4XOcfrbB1l2QBY2nHYMz1-RrXk", authDomain:"ayenda-cafe.firebaseapp.com",
+  databaseURL:"https://ayenda-cafe-default-rtdb.asia-southeast1.firebasedatabase.app", projectId:"ayenda-cafe",
+  storageBucket:"ayenda-cafe.firebasestorage.app", messagingSenderId:"6320724772", appId:"1:6320724772:web:45ec3e511423ed116231b1"
+};
+
+const GOV_TAX = 0.11;
+const SVC_TAX = 0.05;
+let allOrders = {}, filteredOrders = {};
+
+try {
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  onValue(ref(db,'orders'),(snap)=>{
+    allOrders = snap.val() || {};
+    filteredOrders = allOrders;
+    renderOrders(filteredOrders);
+  });
+} catch(e) { console.warn('Firebase not configured'); }
+
+document.getElementById('searchBtn').addEventListener('click', doSearch);
+document.getElementById('searchInput').addEventListener('keyup', (e)=>{ if(e.key==='Enter') doSearch(); });
+
+function doSearch(){
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (!q) { filteredOrders=allOrders; }
+  else {
+    filteredOrders = Object.fromEntries(
+      Object.entries(allOrders).filter(([id,o])=>
+        String(o.table).toLowerCase().includes(q) || (o.name||'').toLowerCase().includes(q)
+      )
+    );
+  }
+  renderOrders(filteredOrders);
+  // Hide bill if searching
+  document.getElementById('billPreview').classList.remove('show');
+  document.getElementById('printBtn').style.display='none';
+}
+
+function renderOrders(orders){
+  const list = document.getElementById('ordersList');
+  const entries = Object.entries(orders).sort((a,b)=>b[1].timestamp-a[1].timestamp);
+  if (!entries.length){ list.innerHTML='<div class="no-orders">No orders found</div>'; return; }
+  list.innerHTML = entries.map(([id,o])=>`
+    <div class="order-card" id="oc-${id}" onclick="selectOrder('${id}')">
+      <div class="oc-top">
+        <div class="oc-table">Table ${o.table}</div>
+        <div class="oc-status ${o.status||'new'}">${o.status||'new'}</div>
+      </div>
+      <div class="oc-meta">${o.name||'Guest'} · ${o.items?o.items.length:0} items · IDR ${o.total||0}k · ${fmtTime(o.timestamp)}</div>
+    </div>`).join('');
+}
+
+window.selectOrder = function(id){
+  document.querySelectorAll('.order-card').forEach(c=>c.classList.remove('selected'));
+  const card = document.getElementById('oc-'+id);
+  if(card) card.classList.add('selected');
+  renderBill(allOrders[id], id);
+};
+
+function renderBill(order, id){
+  const subtotal = order.total || 0;
+  const govTax = Math.round(subtotal * GOV_TAX);
+  const svcTax = Math.round(subtotal * SVC_TAX);
+  const grand = subtotal + govTax + svcTax;
+  const now = new Date();
+  const dateStr = now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear();
+  const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+
+  const itemsHtml = (order.items||[]).map(item=>`
+    <div class="bill-row">
+      <div class="bill-item-name">${item.name}${item.weight?' ('+item.weight+')':''}${item.temp?' · '+(item.temp==='hot'?'Hot':'Ice'):''}
+        ${item.sub?`<div class="bill-item-sub">${item.sub}</div>`:''}
+      </div>
+      <div class="bill-item-qty">×${item.qty}</div>
+      <div class="bill-item-price">IDR ${item.lineTotal}k</div>
+    </div>`).join('');
+
+  document.getElementById('billBox').innerHTML=`
+    <div class="bill-header">
+      <div class="bill-logo">Ayenda</div>
+      <div class="bill-tagline">FITNESS CAFÉ · KEMENUH, UBUD</div>
+      <div class="bill-meta">
+        Date: ${dateStr} · ${timeStr}<br>
+        Table: ${order.table} &nbsp;·&nbsp; Guest: ${order.name||'—'}<br>
+        ${order.seasoning&&order.seasoning!=='standard'?'Seasoning: '+order.seasoning+'<br>':''}
+        ${order.notes?'Notes: '+order.notes:''}
+      </div>
+    </div>
+    <div class="bill-items">${itemsHtml}</div>
+    <div class="bill-totals">
+      <div class="bill-total-row subtotal"><span>Subtotal</span><span>IDR ${subtotal}k</span></div>
+      <div class="bill-total-row subtotal"><span>Government Tax (11%)</span><span>IDR ${govTax}k</span></div>
+      <div class="bill-total-row subtotal"><span>Service Charge (5%)</span><span>IDR ${svcTax}k</span></div>
+      <div class="bill-total-row grand"><span>TOTAL</span><span>IDR ${grand}k</span></div>
+    </div>
+    <div class="bill-footer">
+      Payment at cashier · Cash or transfer<br>
+      <strong>Thank you for dining at Ayenda Fitness Café</strong><br>
+      Kemenuh, Ubud · Bali
+    </div>`;
+
+  document.getElementById('billPreview').classList.add('show');
+  document.getElementById('printBtn').style.display='block';
+  document.getElementById('billPreview').scrollIntoView({behavior:'smooth'});
+}
+
+function fmtTime(ts){if(!ts)return'';const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+</script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayenda Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--black:#0a0a0a;--white:#f5f2ed;--green:#4a7c59;--green-light:#6aab7a;--gray:#1a1a1a;--gray2:#252525;--border:#222;--text-muted:#666;--red:#c0392b;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+  /* LOGIN */
+  .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px}
+  .login-screen.hide{display:none}
+  .login-logo{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px}
+  .login-sub{font-size:11px;letter-spacing:3px;color:var(--green-light);margin-bottom:40px}
+  .login-box{background:var(--gray);border-radius:16px;padding:28px 24px;width:100%;max-width:360px}
+  .login-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:20px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px}
+  .field input{background:var(--black);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px;outline:none;width:100%}
+  .field input:focus{border-color:var(--green)}
+  .login-btn{background:var(--green);border:none;border-radius:10px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;width:100%;margin-top:6px;transition:all 0.2s}
+  .login-btn:active{opacity:0.85}
+  .login-error{color:var(--red);font-size:12px;margin-top:10px;text-align:center;display:none}
+
+  /* ADMIN */
+  .admin-screen{display:none}
+  .admin-screen.show{display:block}
+  .top-bar{background:var(--gray);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:14px 20px;position:sticky;top:0;z-index:10}
+  .top-logo{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;letter-spacing:3px;text-transform:uppercase}
+  .top-logo span{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:300;color:var(--green-light);letter-spacing:3px;display:block}
+  .logout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;padding:6px 12px}
+
+  .admin-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--gray);overflow-x:auto;scrollbar-width:none}
+  .admin-tabs::-webkit-scrollbar{display:none}
+  .admin-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;padding:12px 16px;text-transform:uppercase;white-space:nowrap;transition:all 0.2s}
+  .admin-tab.active{color:var(--white);border-bottom-color:var(--green)}
+
+  .admin-page{display:none;padding:20px}
+  .admin-page.active{display:block}
+
+  /* MENU EDITOR */
+  .cat-selector{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .cat-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;padding:6px 14px;transition:all 0.2s}
+  .cat-btn.active{background:var(--green);border-color:var(--green);color:white}
+
+  .menu-editor-list{margin-bottom:20px}
+  .editor-item{background:var(--gray2);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .editor-item-name{flex:1;font-size:13px}
+  .editor-price-input{background:var(--black);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;outline:none;width:70px;text-align:center}
+  .editor-price-input:focus{border-color:var(--green)}
+  .price-label{font-size:10px;color:var(--text-muted);flex-shrink:0}
+  .save-price-btn{background:var(--green);border:none;border-radius:6px;color:white;cursor:pointer;font-size:11px;font-weight:600;padding:6px 12px;transition:all 0.2s}
+  .save-price-btn:active{opacity:0.8}
+  .del-btn{background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:6px;color:var(--red);cursor:pointer;font-size:11px;padding:6px 10px}
+  .del-btn:active{background:rgba(192,57,43,0.3)}
+
+  /* ADD ITEM FORM */
+  .add-form{background:var(--gray2);border-radius:12px;padding:16px;margin-top:16px}
+  .add-form-title{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--green-light);margin-bottom:14px}
+  .form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .form-input{background:var(--black);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;outline:none;flex:1;min-width:100px}
+  .form-input::placeholder{color:var(--text-muted)}
+  .form-input:focus{border-color:var(--green)}
+  .add-btn{background:var(--green);border:none;border-radius:8px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:10px 20px;width:100%;margin-top:4px}
+  .add-btn:active{opacity:0.85}
+
+  .save-notice{background:rgba(74,124,89,0.15);border:1px solid rgba(74,124,89,0.3);border-radius:8px;color:var(--green-light);font-size:12px;padding:10px 14px;margin-bottom:16px;display:none}
+  .save-notice.show{display:block}
+
+  /* SETTINGS */
+  .settings-section{margin-bottom:28px}
+  .settings-title{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--green-light);margin-bottom:12px}
+  .setting-row{background:var(--gray2);border-radius:10px;padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .setting-label{font-size:13px}
+  .setting-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .setting-input{background:var(--black);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;outline:none;width:80px;text-align:center}
+  .setting-input:focus{border-color:var(--green)}
+  .setting-save{background:var(--green);border:none;border-radius:6px;color:white;cursor:pointer;font-size:11px;font-weight:600;padding:7px 14px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">Ayenda</div>
+  <div class="login-sub">Admin Panel</div>
+  <div class="login-box">
+    <div class="login-title">Sign In</div>
+    <div class="field"><label>Password</label><input type="password" id="pwInput" placeholder="Enter admin password"></div>
+    <button class="login-btn" id="loginBtn">Enter</button>
+    <div class="login-error" id="loginError">Incorrect password</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin-screen" id="adminScreen">
+  <div class="top-bar">
+    <div class="top-logo">Ayenda<span>Admin Panel</span></div>
+    <button class="logout-btn" id="logoutBtn">Sign Out</button>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchAdminTab('menu',this)">Menu Editor</button>
+    <button class="admin-tab" onclick="switchAdminTab('settings',this)">Settings</button>
+  </div>
+
+  <!-- MENU EDITOR -->
+  <div class="admin-page active" id="admin-menu">
+    <div class="save-notice" id="saveNotice">✓ Changes saved</div>
+    <div class="cat-selector" id="catSelector"></div>
+    <div class="menu-editor-list" id="menuEditorList"></div>
+    <div class="add-form">
+      <div class="add-form-title">Add New Item</div>
+      <div class="form-row">
+        <input class="form-input" id="newName" placeholder="Item name">
+        <input class="form-input" id="newWeight" placeholder="Weight (optional)">
+      </div>
+      <div class="form-row">
+        <input class="form-input" id="newPrice" placeholder="Price (k)" type="number">
+        <input class="form-input" id="newKcal" placeholder="Kcal (optional)" type="number">
+      </div>
+      <button class="add-btn" id="addItemBtn">+ Add Item</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="admin-page" id="admin-settings">
+    <div class="settings-section">
+      <div class="settings-title">Tax & Charges</div>
+      <div class="setting-row">
+        <div><div class="setting-label">Government Tax</div><div class="setting-sub">Currently 11%</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="setting-input" id="govTaxInput" value="11" type="number">
+          <span style="font-size:12px;color:var(--text-muted)">%</span>
+          <button class="setting-save" onclick="saveSetting('govTax','govTaxInput')">Save</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Service Charge</div><div class="setting-sub">Currently 5%</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="setting-input" id="svcTaxInput" value="5" type="number">
+          <span style="font-size:12px;color:var(--text-muted)">%</span>
+          <button class="setting-save" onclick="saveSetting('svcTax','svcTaxInput')">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">Admin Password</div>
+      <div class="setting-row">
+        <div><div class="setting-label">Change Password</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="setting-input" id="newPwInput" placeholder="New pw" type="password" style="width:110px">
+          <button class="setting-save" onclick="changePassword()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PASSWORD (stored in localStorage) ────────────────────────────────
+const DEFAULT_PW = 'ayenda2024';
+function getPassword(){ return localStorage.getItem('adminPw') || DEFAULT_PW; }
+
+document.getElementById('loginBtn').addEventListener('click', login);
+document.getElementById('pwInput').addEventListener('keyup',(e)=>{ if(e.key==='Enter') login(); });
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  document.getElementById('adminScreen').classList.remove('show');
+  document.getElementById('loginScreen').classList.remove('hide');
+  document.getElementById('pwInput').value='';
+});
+
+function login(){
+  if(document.getElementById('pwInput').value === getPassword()){
+    document.getElementById('loginScreen').classList.add('hide');
+    document.getElementById('adminScreen').classList.add('show');
+    document.getElementById('loginError').style.display='none';
+    initAdmin();
+  } else {
+    document.getElementById('loginError').style.display='block';
+  }
+}
+
+// ── MENU DATA (loaded from localStorage or defaults) ──────────────────
+const DEFAULT_MENU = {
+  proteins:[
+    {id:'p1',name:'Grilled Beef Patties',weight:'160g',price:45},
+    {id:'p2',name:'Marinated Chicken Breast',weight:'250g',price:48},
+    {id:'p3',name:'Grilled Salmon Fillet',weight:'200g',price:125},
+    {id:'p4',name:'Spiced Tempeh',weight:'160g',price:40},
+    {id:'p5',name:'Spiced Tofu',weight:'160g',price:40},
+    {id:'p6',name:'Free Range Eggs',weight:'3pc',price:25},
+    {id:'p7',name:'Grass Fed Rib Eye Steak',weight:'200g',price:200},
+  ],
+  carbs:[
+    {id:'c1',name:'White Rice',weight:'200g',price:25},
+    {id:'c2',name:'Brown Rice',weight:'200g',price:25},
+    {id:'c3',name:'Roasted Potatoes',weight:'200g',price:25},
+    {id:'c4',name:'Baked Sweet Potatoes',weight:'200g',price:25},
+    {id:'c5',name:'Mashed Potato',weight:'200g',price:30},
+    {id:'c6',name:'Toasted Sourdough Bread',weight:'1pc',price:15},
+    {id:'c7',name:'Raw Honey',weight:'15ml',price:15},
+  ],
+  fats:[
+    {id:'f1',name:'Avocado',weight:'100g',price:28},
+    {id:'f2',name:'Butter',weight:'15g',price:35},
+    {id:'f3',name:'Feta Cheese',weight:'35g',price:30},
+    {id:'f4',name:'Cottage Cheese',weight:'50g',price:28},
+    {id:'f5',name:'Grass Fed Butter',weight:'15g',price:35},
+  ],
+  veg:[
+    {id:'v1',name:'Mixed Salad',weight:'100g',price:25},
+    {id:'v2',name:'Sautéed Mushroom',weight:'200g',price:25},
+    {id:'v3',name:'Sautéed Spinach',weight:'100g',price:25},
+    {id:'v4',name:'Roasted Broccoli',weight:'100g',price:28},
+    {id:'v5',name:'Roasted Beetroot',weight:'100g',price:25},
+    {id:'v6',name:'Grilled Zucchini',weight:'100g',price:25},
+    {id:'v7',name:'Grilled Cherry Tomato',weight:'100g',price:28},
+  ],
+  fruit:[
+    {id:'fr1',name:'Watermelon',weight:'200g',price:25},
+    {id:'fr2',name:'Pineapple',weight:'150g',price:25},
+    {id:'fr3',name:'Strawberry',weight:'100g',price:25},
+    {id:'fr4',name:'Papaya',weight:'100g',price:25},
+    {id:'fr5',name:'Banana',weight:'200g',price:25},
+    {id:'fr6',name:'Dragon Fruit',weight:'100g',price:25},
+  ],
+  probiotic:[
+    {id:'pb1',name:'Sauerkraut',weight:'50g',price:18},
+    {id:'pb2',name:'Kimchi',weight:'80g',price:22},
+    {id:'pb3',name:'Pickled Cucumber Onion',weight:'60g',price:15},
+  ],
+  sauces:[
+    {id:'s1',name:'Guacamole',price:7},{id:'s2',name:'BBQ',price:7},{id:'s3',name:'Hommus',price:7},
+    {id:'s4',name:'Sweet Chilli',price:7},{id:'s5',name:'Honey Mustard',price:7},{id:'s6',name:'Soy Ginger',price:7},
+    {id:'s7',name:'Sriracha',price:7},{id:'s8',name:'Aioli',price:7},{id:'s9',name:'Sambal',price:7},{id:'s10',name:'Sour Cream',price:7},
+  ],
+  coffee:[
+    {id:'d-c1',name:'Americano',price:35},{id:'d-c2',name:'Espresso',price:25},
+    {id:'d-c3',name:'Double Espresso',price:30},{id:'d-c4',name:'Espresso Orange',price:40},
+    {id:'d-c5',name:'Long Black',price:35},{id:'d-c6',name:'Cappuccino',price:35},
+    {id:'d-c7',name:'Latte',price:40},{id:'d-c8',name:'Flat White',price:40},
+  ],
+  tea:[
+    {id:'d-t1',name:'Green Tea',price:50},{id:'d-t2',name:'Flower Tea',price:50},
+    {id:'d-t3',name:'Earl Grey Tea',price:50},{id:'d-t4',name:'Ginger Tea',price:50},
+    {id:'d-t5',name:'Lemon Grass',price:50},{id:'d-t6',name:'Matcha Latte',price:60},
+    {id:'d-t7',name:'Matcha Orange',price:60},
+  ],
+  juice:[
+    {id:'d-j1',name:'Watermelon Juice',price:30},{id:'d-j2',name:'Mango Juice',price:35},
+    {id:'d-j3',name:'Avocado Juice',price:35},{id:'d-j4',name:'Banana Juice',price:35},
+    {id:'d-j5',name:'Pineapple Juice',price:35},{id:'d-j6',name:'Mixed Fruit Juice',price:50},
+    {id:'d-j7',name:'Dragon Fruit Juice',price:30},
+  ],
+  cold:[
+    {id:'d-b1',name:'Coke',price:45},{id:'d-b2',name:'Coke Zero',price:45},
+    {id:'d-b3',name:'Sprite Zero',price:45},{id:'d-b4',name:'Pocari',price:45},
+    {id:'d-b5',name:'Aqua',price:25},{id:'d-b6',name:'Sparkling Water',price:55},
+  ],
+  shakes:[
+    {id:'d-s1',name:'Choco Shake',price:75},{id:'d-s2',name:'Yellow Vit',price:70},
+    {id:'d-s3',name:'Red Dragon',price:65},{id:'d-add1',name:'+ Soy Milk',price:15},
+    {id:'d-add2',name:'+ Almond Milk',price:15},{id:'d-add3',name:'+ 1 Scoop Protein',price:25},
+  ],
+};
+
+function loadMenu(){ try{ return JSON.parse(localStorage.getItem('ayendaMenu')) || DEFAULT_MENU; }catch(e){ return DEFAULT_MENU; } }
+function saveMenu(m){ localStorage.setItem('ayendaMenu',JSON.stringify(m)); showSaveNotice(); }
+
+const catLabels = {
+  proteins:'Proteins',carbs:'Carbs',fats:'Fats',veg:'Veg',fruit:'Fruit',probiotic:'Pre/Pro',sauces:'Sauces',
+  coffee:'Coffee',tea:'Tea',juice:'Juice',cold:'Cold',shakes:'Shakes'
+};
+
+let currentCat = 'proteins';
+
+function initAdmin(){
+  // Build category selector
+  const sel = document.getElementById('catSelector');
+  sel.innerHTML = Object.keys(catLabels).map(cat=>
+    `<button class="cat-btn${cat===currentCat?' active':''}" onclick="selectCat('${cat}')">${catLabels[cat]}</button>`
+  ).join('');
+  renderEditorList();
+  loadSettings();
+}
+
+window.selectCat = function(cat){
+  currentCat=cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('active',b.textContent===catLabels[cat]));
+  renderEditorList();
+};
+
+function renderEditorList(){
+  const menu = loadMenu();
+  const items = menu[currentCat] || [];
+  const list = document.getElementById('menuEditorList');
+  list.innerHTML = items.map((item,i)=>`
+    <div class="editor-item">
+      <div class="editor-item-name">${item.name}${item.weight?' <span style="color:var(--text-muted);font-size:11px">'+item.weight+'</span>':''}</div>
+      <span class="price-label">IDR</span>
+      <input class="editor-price-input" id="ep-${item.id}" value="${item.price}" type="number">
+      <span class="price-label">k</span>
+      <button class="save-price-btn" onclick="savePrice('${item.id}')">Save</button>
+      <button class="del-btn" onclick="deleteItem('${item.id}')">✕</button>
+    </div>`).join('');
+}
+
+window.savePrice = function(itemId){
+  const menu = loadMenu();
+  const input = document.getElementById('ep-'+itemId);
+  const newPrice = parseInt(input.value);
+  if(isNaN(newPrice)||newPrice<0) return;
+  Object.keys(menu).forEach(cat=>{
+    const item = menu[cat].find(i=>i.id===itemId);
+    if(item) item.price=newPrice;
+  });
+  saveMenu(menu);
+};
+
+window.deleteItem = function(itemId){
+  if(!confirm('Delete this item?')) return;
+  const menu = loadMenu();
+  Object.keys(menu).forEach(cat=>{ menu[cat]=menu[cat].filter(i=>i.id!==itemId); });
+  saveMenu(menu); renderEditorList();
+};
+
+document.getElementById('addItemBtn').addEventListener('click',()=>{
+  const name = document.getElementById('newName').value.trim();
+  const weight = document.getElementById('newWeight').value.trim();
+  const price = parseInt(document.getElementById('newPrice').value);
+  if(!name||isNaN(price)){alert('Please enter item name and price.');return;}
+  const menu = loadMenu();
+  const newId = currentCat+'-new-'+Date.now();
+  menu[currentCat].push({id:newId,name,weight:weight||'',price});
+  saveMenu(menu);
+  document.getElementById('newName').value='';
+  document.getElementById('newWeight').value='';
+  document.getElementById('newPrice').value='';
+  document.getElementById('newKcal').value='';
+  renderEditorList();
+});
+
+function loadSettings(){
+  const gt=localStorage.getItem('govTax')||'11';
+  const st=localStorage.getItem('svcTax')||'5';
+  document.getElementById('govTaxInput').value=gt;
+  document.getElementById('svcTaxInput').value=st;
+}
+
+window.saveSetting = function(key,inputId){
+  const val=document.getElementById(inputId).value;
+  localStorage.setItem(key,val);
+  showSaveNotice();
+};
+
+window.changePassword = function(){
+  const pw=document.getElementById('newPwInput').value;
+  if(!pw||pw.length<4){alert('Password must be at least 4 characters.');return;}
+  localStorage.setItem('adminPw',pw);
+  document.getElementById('newPwInput').value='';
+  showSaveNotice();
+};
+
+function showSaveNotice(){
+  const n=document.getElementById('saveNotice'); n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2500);
+}
+
+function switchAdminTab(id,btn){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active'); document.getElementById('admin-'+id).classList.add('active');
+}
+</script>
+</body>
+</html>
